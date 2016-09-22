@@ -1,15 +1,18 @@
 (clear)
 
+(watch rules)
+(watch facts)
+
 (deffacts info
   (blessure-crime expeliarmus)
 )
 
 (deffacts courses
-  (courses XYZ from-t 5 to-t 8) 
+  (course XYZ from-t 5 to-t 8) 
 )
 
 (deffacts people
-  (personnage Hermione est une sang-de-bourbe)
+  (personnage Hermione est un sang-de-bourbe)
   (personnage Harry est un magicien)
   (personnage Dumbledore est un vieux)
   (personnage Ron est un roux)
@@ -30,21 +33,20 @@
   (blessure-crime ?spell)
   (spell ?spell can be cast from ?qualifier)
   =>
-  (printout t "The spell can be cast by " ?qualifier "."  crlf)
+  (printout t "The spell can be cast by a " ?qualifier "."  crlf)
   (assert (the-spell-caster ?qualifier))
 )
 
-(defrule final
+(defrule meurtrier
   (declare (salience 2))
   (the-spell-caster ?qualifier)
   (personnage ?name est un ?qualifier)
-  (blessure-crime ?spell can be cast from ?qualifier)
+  (spell ?spell can be cast from ?qualifier)
   =>
   (printout t "Le crime a été fiat par un " ?qualifier " nommé " ?name ". Il a utilisé un spell " ?spell "." crlf)
-  (assert (the-killer) ?nom)
+  (assert (the-killer ?name))
+  (halt)
 )
 
 (reset)
-(watch facts)
-(watch rules)
 (run)
