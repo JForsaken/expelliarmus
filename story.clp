@@ -6,6 +6,14 @@
 ;; faits
 (deffacts informations
   (blessure-crime expeliarmus)
+  (lieu-crime toilettes-des-filles) 
+
+  (personnage Harry at-l yoga at-t 14)
+  (personnage Harry voit Hermione at-t 14)
+
+  (personnage Harry voit Ron at-t 13)
+
+  (personnage Harry voit Ron lancer Accio)
 )
 
 (deffacts cours
@@ -20,44 +28,45 @@
   (cours histoire-de-la-magie from-t 15 to-t 18)
 )
 
-(deffacts personnages
-  (personnage Hermione)
-  (personnage Harry)
-  (personnage Malfoy)
-  (personnage Ron)
-  (personnage Marcus-Flint)
-  (personnage Fred-Weasley)
-  (personnage Cho-Chang)
-)
+;(deffacts personnages
+;  (personnage Hermione)
+;  (personnage Harry)
+;  (personnage Malfoy)
+;  (personnage Ron)
+;  (personnage Marcus-Flint)
+;  (personnage Fred-Weasley)
+;  (personnage Cho-Chang)
+;)
 
 (deffacts agenda
-  (Hermione suit histoire-de-la-magie)
-  (Hermione suit yoga)
-  (Hermione suit etude-des-moldus)
+  (personnage Hermione suit histoire-de-la-magie)
+  (personnage Hermione suit yoga)
+  (personnage Hermione suit etude-des-moldus)
 
-  (Harry suit vol)
-  (Harry suit yoga)
-  (Harry suit defense-contre-le-mal)
+  (personnage Harry suit vol)
+  (personnage Harry suit yoga)
+  (personnage Harry suit defense-contre-le-mal)
 
-  (Ron suit sortilege)
-  (Ron suit yoga)
-  (Ron suit astronomie)
+  (personnage Ron suit sortilege)
+  (personnage Ron suit yoga)
+  (personnage Ron suit astronomie)
 
-  (Malfoy suit sortilege)
-  (Malfoy suit botanique)
-  (Malfoy suit defense-contre-le-mal)
+  (personnage Malfoy suit sortilege)
+  (personnage Malfoy suit botanique)
+  (personnage Malfoy suit defense-contre-le-mal)
 
-  (Marcus-Flint suit etude-des-moldus)
-  (Marcus-Flint suit potions)
-  (Marcus-Flint suit histoire-de-la-magie)
+  (personnage Marcus-Flint suit etude-des-moldus)
+  (personnage Marcus-Flint suit potions)
+  (personnage Marcus-Flint suit histoire-de-la-magie)
 
-  (Fred-Weasley suit vol)
-  (Fred-Weasley suit botanique)
-  (Fred-Weasley suit histoire-de-la-magie)
+  (personnage Fred-Weasley suit vol)
+  (personnage Fred-Weasley suit botanique)
+  (personnage Fred-Weasley suit histoire-de-la-magie)
 
-  (Cho-Chang suit sortilege)
-  (Cho-Chang suit yoga)
-  (Cho-Chang suit defense-contre-le-mal)
+
+  (personnage Cho-Chang suit sortilege)
+  (personnage Cho-Chang suit yoga)
+  (personnage Cho-Chang suit defense-contre-le-mal)
 )
 
 (deffacts lieux
@@ -108,43 +117,65 @@
 )
 
 (deffacts apprentissages
-  (vol apprend wingardium-leviosa)
-  (yoga apprend accio)
-  (yoga apprend alohomora)
-  (botanique apprend imperio)
-  (potions apprend expeliarmus)
-  (potions apprend colloportus)
-  (defense-contre-le-mal apprend wingardium-leviosa)
-  (defense-contre-le-mal apprend accio)
-  (defense-contre-le-mal apprend avada-kedavra)
-  (astronomie apprend avada-kedavra)
-  (astronomie apprend expeliarmus)
-  (histoire-de-la-magie apprend crucio)
-  (histoire-de-la-magie apprend imperio)
-  (sortilege apprend accio)
-  (sortilege apprend colloportus)
-  (sortilege apprend alohomora)
+  (cours vol apprend wingardium-leviosa)
+
+  (cours yoga apprend accio)
+  (cours yoga apprend alohomora)
+
+  (cours botanique apprend imperio)
+
+  (cours potions apprend expeliarmus)
+  (cours potions apprend colloportus)
+
+  (cours defense-contre-le-mal apprend wingardium-leviosa)
+  (cours defense-contre-le-mal apprend accio)
+  (cours defense-contre-le-mal apprend avada-kedavra)
+
+  (cours astronomie apprend avada-kedavra)
+  (cours astronomie apprend expeliarmus)
+
+  (cours histoire-de-la-magie apprend crucio)
+  (cours histoire-de-la-magie apprend imperio)
+
+  (cours sortilege apprend accio)
+  (cours sortilege apprend colloportus)
+  (cours sortilege apprend alohomora)
 )
 
 ;; regles
-(defrule suspect
-  (declare (salience 1))
-  (blessure-crime ?spell)
-  (sortilege ?sortilege peut être lancé par ?qualifier)
+(defrule vu-par
+  (personnage ?voit at-l ?lieu at-t ?temps)
+  (personnage ?voit voit ?vu at-t ?temps)
   =>
-  (printout t "Le sortilege peut être lancé par " ?qualifier "."  crlf)
-  (assert (lanceur-de-sort ?qualifier))
+  (assert (personnage ?vu at-l ?lieu at-t ?temps))
 )
 
-(defrule meurtrier
-  (declare (salience 2))
-  (lanceur-de-sort ?qualifier)
-  (personnage ?nom est un ?qualifier)
-  (sortilege ?sortilege peut etre lance a partir de ?qualifier)
+(defrule vu-lancer-sortilege
+  (personnage ?voit voit ?vu lancer ?sortilege)
   =>
-  (printout t "Le crime a été fait par un " ?qualifier " nommé " ?nom ". Il a utilisé un sortilège " ?sortilege "." crlf)
-  (assert (le-meurtrier ?nom))
-  (halt)
+  (assert (personnage ?vu connait ?sortilege))
+)
+
+(defrule suspect
+  (blessure-crime ?sortilegeCrime)
+  (personnage ?nom at-l toilettes-des-filles)
+  (personnage ?nom connait ?sortilegeCrime)
+  =>
+  (assert (suspect personnage ?nom))
+)
+
+(defrule aprentissage
+  (personnage ?nom suit ?cours)
+  (personnage ?nom at-l ?cours at-t ?temps)
+
+  (cours ?cours from-t ?de to-t ?a)
+  
+  (test (> ?temps ?de))
+  (test (< ?temps ?a))
+
+  (cours ?cours apprend ?sortilege)
+  =>
+  (assert (personnage ?nom connait ?sortilege))
 )
 
 (reset)
