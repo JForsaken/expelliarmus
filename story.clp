@@ -28,16 +28,6 @@
   (cours histoire-de-la-magie from-t 15 to-t 18)
 )
 
-;(deffacts personnages
-;  (personnage Hermione)
-;  (personnage Harry)
-;  (personnage Malfoy)
-;  (personnage Ron)
-;  (personnage Marcus-Flint)
-;  (personnage Fred-Weasley)
-;  (personnage Cho-Chang)
-;)
-
 (deffacts agenda
   (personnage Hermione suit histoire-de-la-magie)
   (personnage Hermione suit yoga)
