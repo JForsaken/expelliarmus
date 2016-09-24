@@ -6,7 +6,8 @@
 ;; faits
 (deffacts informations
   (blessure-crime expeliarmus)
-  (lieu-crime toilettes-des-filles) 
+  (lieu-crime toilettes-des-filles) ; enlever
+  (temps-crime 13) ; enlever
 
   (personnage Harry at-l yoga at-t 14)
   (personnage Harry voit Hermione at-t 14)
@@ -14,6 +15,8 @@
   (personnage Harry voit Ron at-t 13)
 
   (personnage Harry voit Ron lancer Accio)
+
+  (personnage Hermione lance imperio sur Ron at-t 12)
 )
 
 (deffacts cours
@@ -133,6 +136,17 @@
 )
 
 ;; regles
+;(defrule cours-annuler
+;  (annuler ?cours)
+;  
+;  =>
+;  rétracter les gens qui sont dans ce cours
+;)
+
+;(defrule vu-dans-cours
+;  (personnage
+;)
+
 (defrule vu-par
   (personnage ?voit at-l ?lieu at-t ?temps)
   (personnage ?voit voit ?vu at-t ?temps)
@@ -140,20 +154,40 @@
   (assert (personnage ?vu at-l ?lieu at-t ?temps))
 )
 
-(defrule vu-lancer-sortilege
-  (personnage ?voit voit ?vu lancer ?sortilege)
+; Quand la personne prend le controle ?***
+; A partir du moment ou une personne lance un imperio fructueux, la personne qui
+; est controllée est équivalente à la personne qui contrôle.
+;;;; ne marche po
+(defrule lancer-sortilege-sur
+  (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
+  ;(bind ?peutSeDefendre (test (personnage ?victime connait expeliarmus)))
   =>
-  (assert (personnage ?vu connait ?sortilege))
+  (if (personnage ?victime connait expeliarmus) then ; regarder si la personne connait expeliarmus at-t ?temps
+    (printout ?victime " se défend contre un sort " ?sortilege crlf)
+   else
+    (printout ?victime " subit un sort " ?sortilege crlf)
+    (if (test (== ?sortilege imperio)) then
+      (assert (personnage ?victime controlle par ?nom))
+    )
+  )
 )
+
+; complexe
+;(defrule lancer-sortilege
+;  (personnage ?lanceur lance ?sortilege sur ?receveur)
+;  (test (personnage ?receveur conn
+;  =>
+;  (assert (personnage ?vu connait ?sortilege))
+;)
 
 (defrule suspect
   (blessure-crime ?sortilegeCrime)
-  (personnage ?nom at-l toilettes-des-filles)
   (personnage ?nom connait ?sortilegeCrime)
   =>
-  (assert (suspect personnage ?nom))
+  (assert (suspect ?nom))
 )
 
+;; complexe
 (defrule aprentissage
   (personnage ?nom suit ?cours)
   (personnage ?nom at-l ?cours at-t ?temps)
@@ -166,6 +200,31 @@
   (cours ?cours apprend ?sortilege)
   =>
   (assert (personnage ?nom connait ?sortilege))
+)
+
+(defrule le-tueur
+  (suspect ?nom)
+  (lieu-crime ?lieu)
+  (temps-crime ?temps)
+  (personnage ?nom at-l ?lieu at-t ?temps)
+  =>
+  (assert (le-tueur est ?nom))
+  (halt)
+)
+
+; complexe
+(defrule le-vrai-tueur
+  (heure-crime ?tempsCrime)
+  (personnage ?vraiTueur connait imperio)
+  (personnage ?vraiTueur lance imperio sur ?tueur at-t ?temps)
+
+  (test (< ?temps ?tempsCrime))
+
+  (le-tueur est ?tueur)
+  (personnage ?tueur est controlle par ?vraiTueur)
+  =>
+  (retract (le-tueur est ?tueur))
+  (assert (le-tueur est ?vraiTueur))
 )
 
 (reset)
