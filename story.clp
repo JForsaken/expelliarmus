@@ -155,6 +155,7 @@
 ; A partir du moment ou une personne lance un imperio fructueux, la personne qui
 ; est controllée est équivalente à la personne qui contrôle.
 (defrule lancer-sortilege-succes
+  (personnage ?nom connait ?sortilege)
   (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
   (not (personnage ?victime connait expeliarmus)) 
   =>
@@ -163,6 +164,7 @@
 )
 
 (defrule lancer-sortilege-echec
+  (personnage ?nom connait ?sortilege)
   (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
   (personnage ?victime connait expeliarmus)
   =>
@@ -171,8 +173,7 @@
 )
 
 (defrule prendre-controle
-  (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
-  (personnage ?victime est atteint par ?sortilege)
+  (personnage ?victime est atteint par imperio)
   =>
   (assert (?victime est controlle par ?nom))
 )
