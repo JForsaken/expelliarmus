@@ -138,6 +138,24 @@
 )
 
 ;; regles
+(defrule a-une-baguette
+  (personnage ?nom possede ?baguette)
+  =>
+  (assert (?nom possede une ?baguette))
+)
+
+(defrule lancer-sortilege
+  (personnage ?nom a-une-baguette)
+  =>
+  (assert (?nom peut lancer un sortilege))
+)
+
+(defrule moldu
+  (not (personnage $nom est $moldu))
+  =>
+  (assert (?nom peut lancer sortilege))
+)
+
 ;(defrule cours-annuler
 ;  (annuler ?cours)
 ;  
