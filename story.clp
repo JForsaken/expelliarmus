@@ -138,30 +138,31 @@
 )
 
 ;; regles
-(defrule a-une-baguette
-  (personnage ?nom possede ?baguette)
+(defrule prend-baguette
+  (personnage ?nom prend baguette)
   =>
-  (assert (?nom possede une ?baguette))
+  (assert (personnage ?nom possede une ?baguette))
 )
 
-(defrule lancer-sortilege
+(defrule peut-lancer-sortilege
   (personnage ?nom a-une-baguette)
   =>
-  (assert (?nom peut lancer un sortilege))
+  (assert (personnage ?nom peut lancer un sortilege))
 )
 
-(defrule moldu
-  (not (personnage $nom est $moldu))
+(defrule peut-lancer-sortilege
+  (not (personnage ?nom est moldu))
+  (personnage ?nom possede ?baguette)
   =>
-  (assert (?nom peut lancer sortilege))
+  (assert (personnage ?nom peut lancer sortilege))
 )
 
-;(defrule cours-annuler
-;  (annuler ?cours)
-;  
-;  =>
-;  rétracter les gens qui sont dans ce cours
-;)
+(defrule est-moldu
+  (personnage ?nom)
+  (not (personnage ?nom est moldu))
+  =>
+  (assert (personnage ?nom peut lancer sortilege))
+)
 
 (defrule vu-par
   (personnage ?voit at-l ?lieu at-t ?temps)
@@ -173,12 +174,13 @@
 ; A partir du moment ou une personne lance un imperio fructueux, la personne qui
 ; est controllée est équivalente à la personne qui contrôle.
 (defrule lancer-sortilege-succes
+  (personnage ?nom peut lancer sortilege)
   (personnage ?nom connait ?sortilege)
   (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
   (not (personnage ?victime connait expeliarmus)) 
   =>
   (assert (personnage ?nom lance succes ?sortilege sur ?victime at-t ?temps))
-  (assert (personnage ?victime est atteint par ?sortilege))
+  (assert (personnage ?victime est atteint par ?sortilege at-t ?temps))
 )
 
 (defrule lancer-sortilege-echec
@@ -187,13 +189,14 @@
   (personnage ?victime connait expeliarmus)
   =>
   (printout t ?victime " se défend contre un sort " ?sortilege crlf)
-  (assert (personnage ?nom have-not baguette from-t ?temps))
+  (assert (personnage ?nom perd baguette from-t ?temps))
 )
 
 (defrule prendre-controle
-  (personnage ?victime est atteint par imperio)
+  (personnage ?nom lance succes imperio sur ?victime at-t ?temps)
+  (personnage ?victime est atteint par imperio at-t ?temps)
   =>
-  (assert (?victime est controlle par ?nom))
+  (assert (personnage ?nom controle ?victime from-t ?temps))
 )
 
 (defrule suspect
@@ -232,7 +235,7 @@
   (heure-crime ?tempsCrime)
   (personnage ?vraiTueur connait imperio)
   (personnage ?vraiTueur lance imperio sur ?tueur at-t ?temps)
-  (personnage ?tueur est controlle par ?vraiTueur from-t ?temps) ; le sort a réussi
+  (personnage ?vraiTueur controle ?tueur from-t ?temps) ; le sort a réussi
 
   (test (< ?temps ?tempsCrime))
 
