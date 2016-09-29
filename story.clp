@@ -61,6 +61,29 @@
   (cours histoire-de-la-magie from-t 15 to-t 18)
 )
 
+(deffacts objets
+  (object hedwige)
+  (object briquet)
+  (object cire-a-chaussure)
+  (object epee-de-gryffondor)
+  (object pierre-philosophale)
+  (object choixpeau)
+  (object coupe-de-feu)
+  (object horloge-de-la-famille-weasley)
+  (object bombe-puante)
+  (object sterilet)
+  (object nimbus-2000)
+  (object porte-poussiere)
+  (object cape-invisibilite) 
+)
+
+(deffacts horcruxe
+  (object hedwige est un horcruxe)
+  (object sterilet est un horcruxe)
+  (object porte-poussiere est un horcruxe)
+  (object horloge-de-la-famille-weasley est un horcruxe)
+)
+
 (deffacts agenda
   (personnage Hermione suit histoire-de-la-magie)
   (personnage Hermione suit yoga)
@@ -202,22 +225,41 @@
 ; A partir du moment ou une personne lance un imperio fructueux, la personne qui
 ; est controllée est équivalente à la personne qui contrôle.
 (defrule lancer-sortilege-succes
-  (personnage ?nom peut lancer sortilege)
   (personnage ?nom connait ?sortilege)
   (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
-  (not (personnage ?victime connait expeliarmus)) 
+  (sortilege-reussi ?nom ?sortilege ?victime ?temps)
   =>
   (assert (personnage ?nom lance succes ?sortilege sur ?victime at-t ?temps))
   (assert (personnage ?victime est atteint par ?sortilege at-t ?temps))
 )
 
-(defrule lancer-sortilege-echec
+(deffunction sortilege-reussi (?nom ?sortilege ?victime ?temps)
+  (return 
+    (and
+      (personnage ?nom peut lancer sortilege)
+      (personnage ?nom connait ?sortilege)
+      (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
+      (not (personnage ?victime connait expeliarmus))
+    )   
+  )
+)
+
+(defrule se-defend
   (personnage ?nom connait ?sortilege)
   (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
   (personnage ?victime connait expeliarmus)
   =>
   (printout t ?victime " se défend contre un sort " ?sortilege crlf)
   (assert (personnage ?nom perd baguette from-t ?temps))
+)
+
+(defrule est-mort
+  (personnage ?nom connait ?sortilege)
+  (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
+  (sortilege-reussi ?nom ?sortilege ?victime ?temps)
+  (test(neq ?victime "Harry")) (test(eq ?sortilege "avada-kedavra"))
+  =>
+  (assert (personnage ?nom est mort))
 )
 
 (defrule prendre-controle
