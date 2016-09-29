@@ -277,15 +277,14 @@
 (defrule deteste 
   (personnage ?nomUn deteste personnage ?nomDeux)
   =>
- (printout t ?nomUn " a tué " ?nomDeux ". " ?nomUn" est le tueur" crlf)
-  (assert ($nomUn deteste ?nomDeux))
+  (assert (?nomUn deteste ?nomDeux))
 )
 
 (defrule prendre
-(personnage $nom prend objet $objet)
-=>
-(printout t ?nom " possede " ?objet " crlf)
-(assert($nom possede $objet)
+ (personnage ?nom prend objet ?objet)
+ =>
+ (printout t ?nom " possede " ?objet)
+ (assert(?nom possede ?objet))
 )
 
 
