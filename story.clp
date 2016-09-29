@@ -275,5 +275,19 @@
   (halt)
 )
 
+(defrule deteste 
+  (personnage ?nomUn deteste personnage ?nomDeux)
+  =>
+  (assert (?nomUn deteste ?nomDeux))
+)
+
+(defrule prendre
+ (personnage ?nom prend objet ?objet)
+ =>
+ (printout t ?nom " possede " ?objet)
+ (assert(?nom possede ?objet))
+)
+
+
 (reset)
 (run)
