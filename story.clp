@@ -34,8 +34,8 @@
 ;; faits
 (deffacts informations
   (blessure-crime expeliarmus)
-  (lieu-crime toilettes-des-filles) ; enlever
-  (temps-crime 13) ; enlever
+  (victime-crime Ron)
+  (heure-crime 15) ; enlever
 
   (personnage Harry at-l yoga at-t 14)
   (personnage Harry voit Hermione at-t 14)
@@ -92,41 +92,41 @@
   (personnage Cho-Chang suit defense-contre-le-mal)
 )
 
-(deffacts lieux
-  (lieu terrain-de-quidditch) ;; 1
-  (lieu chambre-des-secrets)  ;; 2
-  (lieu dortoire-gryffondor)  ;; 3
-  (lieu dortoire-poufsouffle) ;; 4
-  (lieu dortoire-serdaigle)   ;; 5
-  (lieu toilettes-des-filles) ;; 6
-  (lieu bibliotheque)         ;; 7
-  (lieu dortoire-serpentard)  ;; 8
-)
+;(deffacts lieux
+;  (lieu terrain-de-quidditch) ;; 1
+;  (lieu chambre-des-secrets)  ;; 2
+;  (lieu dortoire-gryffondor)  ;; 3
+;  (lieu dortoire-poufsouffle) ;; 4
+;  (lieu dortoire-serdaigle)   ;; 5
+;  (lieu toilettes-des-filles) ;; 6
+;  (lieu bibliotheque)         ;; 7
+;  (lieu dortoire-serpentard)  ;; 8
+;)
 
-(deffacts portes
-  ;; 6-1
-  (porte de-l terrain-de-quidditch a-l toilettes-des-filles)
-  (porte de-l toilettes-des-filles a-l terrain-de-quidditch)
-
-  ;; 6-2
-  (porte de-l toilettes-des-filles a-l chambre-des-secrets)
-  (porte de-l chambre-des-secrets a-l toilettes-des-filles)
-
-  ;; 2-7
-  (porte de-l chambre-des-secrets a-l bibliotheque)
-  (porte de-l bibliotheque a-l chambre-des-secrets)
-
-  ;; 7-3-4-5-8
-  (porte de-l bibliotheque a-l dortoire-gryffondor)
-  (porte de-l bibliotheque a-l dortoire-serdaigle)
-  (porte de-l bibliotheque a-l dortoire-poufsouffle)
-  (porte de-l bibliotheque a-l dortoire-serpentard)
-
-  (porte de-l dortoire-gryffondor bibliotheque)
-  (porte de-l dortoire-serdaigle bibliotheque)
-  (porte de-l dortoire-poufsouffle bibliotheque)
-  (porte de-l dortoire-serpentard bibliotheque)
-)
+;(deffacts portes
+;  ;; 6-1
+;  (porte de-l terrain-de-quidditch a-l toilettes-des-filles)
+;  (porte de-l toilettes-des-filles a-l terrain-de-quidditch)
+;
+;  ;; 6-2
+;  (porte de-l toilettes-des-filles a-l chambre-des-secrets)
+;  (porte de-l chambre-des-secrets a-l toilettes-des-filles)
+;
+;  ;; 2-7
+;  (porte de-l chambre-des-secrets a-l bibliotheque)
+;  (porte de-l bibliotheque a-l chambre-des-secrets)
+;
+;  ;; 7-3-4-5-8
+;  (porte de-l bibliotheque a-l dortoire-gryffondor)
+;  (porte de-l bibliotheque a-l dortoire-serdaigle)
+;  (porte de-l bibliotheque a-l dortoire-poufsouffle)
+;  (porte de-l bibliotheque a-l dortoire-serpentard)
+;
+;  (porte de-l dortoire-gryffondor bibliotheque)
+;  (porte de-l dortoire-serdaigle bibliotheque)
+;  (porte de-l dortoire-poufsouffle bibliotheque)
+;  (porte de-l dortoire-serpentard bibliotheque)
+;)
 
 (deffacts sortileges
   (sortilege expeliarmus)
@@ -173,21 +173,8 @@
 )
 
 (defrule peut-lancer-sortilege
-  (personnage ?nom a-une-baguette)
-  =>
-  (assert (personnage ?nom peut lancer un sortilege))
-)
-
-(defrule peut-lancer-sortilege
   (not (personnage ?nom est moldu))
   (personnage ?nom possede ?baguette)
-  =>
-  (assert (personnage ?nom peut lancer sortilege))
-)
-
-(defrule est-moldu
-  (personnage ?nom)
-  (not (personnage ?nom est moldu))
   =>
   (assert (personnage ?nom peut lancer sortilege))
 )
@@ -199,6 +186,7 @@
   (assert (personnage ?vu at-l ?lieu at-t ?temps))
 )
 
+; complexe
 ; A partir du moment ou une personne lance un imperio fructueux, la personne qui
 ; est controllée est équivalente à la personne qui contrôle.
 (defrule lancer-sortilege-succes
@@ -227,8 +215,17 @@
   (assert (personnage ?nom controle ?victime from-t ?temps))
 )
 
+; complexe
 (defrule suspect
   (blessure-crime ?sortilegeCrime)
+  (victime-crime ?victime)
+  (or 
+    (personnage ?nom deteste personnage ?victime)
+    (and
+      (personnage ?victime possede ?objet)
+      (personnage ?nom desire ?objet)
+    )
+  )
   (personnage ?nom connait ?sortilegeCrime)
   =>
   (assert (suspect ?nom))
@@ -249,11 +246,15 @@
   (assert (personnage ?nom connait ?sortilege))
 )
 
+;complexe
 (defrule le-tueur
   (suspect ?nom)
   (lieu-crime ?lieu)
-  (temps-crime ?temps)
-  (personnage ?nom at-l ?lieu at-t ?temps)
+  (heure-crime ?temps)
+  (personnage ?nom at-l ?lieu at-t ?tempsCondition)
+
+  (test (> ?tempsCondition ?temps - 1))
+  (test (< ?tempsCondition ?temps + 1))
   =>
   (assert (le-tueur est ?nom))
 )
