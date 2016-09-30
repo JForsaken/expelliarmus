@@ -317,17 +317,38 @@
   (halt)
 )
 
-(defrule deteste 
-  (personnage ?nomUn deteste personnage ?nomDeux)
-  =>
-  (assert (?nomUn deteste ?nomDeux))
+(defrule devenir-ami
+
 )
+
+(defrule amitier-deteste 
+  (personnage ?nomA attaque personnage ?nomB at-t ?T1 et ?nomB est ami de personnage ?nomC from-t ?T2) 
+  ; a attaque b at-t T1, c est ami de b from-t T2
+  (test(< ?T1 ?T2))
+  ; verifier T2 plus petit que T
+  =>
+  ; c deteste a
+  ; b deteste a
+  (assert (personnage ?nomA deteste personnage ?nomB))
+  (assert (personnage ?nomA deteste personnage ?nomC))
+  (assert (personnage ?nomB deteste personnage ?nomA))
+  (assert (personnage ?nomC deteste personnage ?nomA))
+)
+
+(defrule posseder
+  (personnage ?nomA possede ?objet && personnage ?nomB veut ?objet)
+  (assert (personnage ?nomB deteste personnage ?nomA)
+  (assert (personnage ?nomA deteste personnage ?nomB)
+)
+
+  ; personnage a possede y, c veut y
+
 
 (defrule prendre
  (personnage ?nom prend objet ?objet)
  =>
  (printout t ?nom " possede " ?objet)
- (assert(?nom possede ?objet))
+ (assert(personnage ?nom possede ?objet))
 )
 
 
