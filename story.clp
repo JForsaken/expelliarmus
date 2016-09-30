@@ -38,27 +38,27 @@
   (lieu-crime toilette) ; dans les toilettes 
   (heure-crime 16) ; pendant le 3e  cours de la journée
 
+  (personnage Marcus-Flint at-l potions at-t 13)
   (personnage Harry at-l yoga at-t 14)
+
+  (personnage Harry voit Ron at-t 10)
   (personnage Harry voit Hermione at-t 14)
 
-  (personnage Harry voit Ron at-t 13)
-
-  (personnage Harry voit Ron lancer Accio)
-
+  (personnage Ron lance accio sur Harry at-t 11) 
   (personnage Hermione lance imperio sur Marcus-Flint at-t 12)
   (personnage Cho-Chang lance imperio sur Fred-Weasley at-t 12)
 
-  (personnage Marcus-Flint at-l potions at-t 13)
-
-  (personnage Ron possede epee-de-gryffondor) ; indice meurtre
+  (personnage Harry possede epee-de-gryffondor) ; indice meurtre
   (personnage Harry possede coupe-de-feu)
   (personnage Hermione possede sterilet)
   (personnage Cho-Chang possede porte-poussiere)
   (personnage Fred-Weasley possede horloge-de-la-famille-weasley)
   (personnage Marcus-Flint possede briquet)
 
+  (personnage Ron desire epee-de-gryffondor)
   (personnage Cho-Chang desire epee-de-gryffondor) ; indice meurtre
 
+  (professeur voit Harry at-t 10)
   (professeur voit Cho-Chang at-t 10)
   (professeur voit Cho-Chang at-t 14)
   ; TODO ajouter plus de professeur voir X at-t T
@@ -123,7 +123,7 @@
   (personnage Harry suit yoga)
   (personnage Harry suit defense-contre-le-mal)
 
-  (personnage Ron suit sortilege)
+  (personnage Ron suit vol)
   (personnage Ron suit yoga)
   (personnage Ron suit astronomie)
 
@@ -167,6 +167,7 @@
 
 (deffacts apprentissages
   (cours vol apprend wingardium-leviosa)
+  (cours vol apprend accio)
 
   (cours yoga apprend accio)
   (cours yoga apprend alohomora)
@@ -192,6 +193,12 @@
 )
 
 ;; regles
+(defrule commencer-jour
+  (personnage ?nom est ?statut)
+  =>
+  (assert (personnage ?nom possede baguette))
+)
+
 (defrule peut-lancer-sortilege
   (personnage ?nom est ?statut)
   (test (neq ?statut moldu))
@@ -222,9 +229,6 @@
 ; A partir du moment ou une personne lance un imperio fructueux, la personne qui
 ; est controllée est équivalente à la personne qui contrôle.
 (defrule lancer-sortilege-succes
- ; (personnage ?nom connait ?sortilege)
- ; (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
- ; (sortilege-reussi ?nom ?sortilege ?victime ?temps)
   (personnage ?nom peut lancer sortilege)
   (personnage ?nom connait ?sortilege)
   (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
@@ -234,31 +238,13 @@
   (assert (personnage ?victime est atteint par ?sortilege at-t ?temps))
 )
 
-(deffunction sortilege-reussi (?nom ?sortilege ?victime ?temps)
-  (return 
-    (and
-      (personnage ?nom peut lancer sortilege)
-      (personnage ?nom connait ?sortilege)
-      (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
-      (not (personnage ?victime connait expeliarmus))
-    )   
-  )
-)
-
 (defrule lancer-sortilege-echec
-  ;(personnage ?nom connait ?sortilege)
-  ;(personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
-  ;(not 
-;
-;    (sortilege-reussi ?nom ?sortilege ?victime ?temps)
-;  )
-
   (personnage ?nom peut lancer sortilege)
   (personnage ?nom connait ?sortilege)
   (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
   (personnage ?victime connait expeliarmus)
   =>
-  (retract (personnage ?nom possede baguette))
+  (retract-string (str-cat "(personnage " ?nom " possede baguette)"))
 )
 
 ; complexe
@@ -283,11 +269,9 @@
 (defrule voler
   (personnage ?voleur desire ?objet)
   (personnage ?victime possede ?objet)
-  (personnage ?voleur connait accio)
-  (personnage ?voleur lance accio sur ?victime at-t ?temps)
-  (sortilege-reussi ?voleur accio ?victime ?temps)
+  (personnage ?voleur lance succes accio sur ?victime at-t ?temps)
   =>
-  (retract (personnage ?victime possede ?objet))
+  (retract-string (str-cat "(personnage " ?victime " possede " ?objet ")"))
   (assert (personnage ?voleur possede ?objet))
   (assert (personnage ?victime deteste ?voleur))
 )
@@ -297,6 +281,30 @@
   (personnage ?victime est atteint par imperio at-t ?temps)
   =>
   (assert (personnage ?nom controle ?victime from-t ?temps))
+)
+
+(defrule perdre
+  (personnage ?nom possede ?objet)
+  (personnage ?nom perd ?objet)
+  =>
+  (retract-string (str-cat "(personnage " ?nom " possede " ?objet")"))
+  (assert (objet ?objet est perdu))
+)
+
+(defrule localiser
+  (personnage ?nom voit ?objet at-l ?lieu)
+  =>
+  (retract-string (str-cat "(objet " ?objet " est perdu)"))
+  (assert (objet ?objet at-l ?lieu))
+)
+
+(defrule prendre
+  (personnage ?nom at-l ?lieu)
+  (objet ?objet at-l ?lieu)
+  (personnage ?nom desire ?objet)
+  =>
+  (retract-string (str-cat "(objet " ?objet " at-l " ?lieu ")"))
+  (assert (personnage ?nom possede ?objet))
 )
 
 ; complexe
@@ -341,22 +349,27 @@
 
 ; complexe
 (defrule le-vrai-tueur
+  (le-meurtrier est ?tueur)
+  (victime-crime ?victime)
   (heure-crime ?tempsCrime)
+  (personnage ?vraiTueur different de ?victime)
+  (personnage ?victime possede ?objet)
+  (personnage ?vraiTueur desire ?objet)
+  (personnage ?vraiTueur deteste ?victime)
   (personnage ?vraiTueur connait imperio)
   (personnage ?vraiTueur lance imperio sur ?tueur at-t ?temps)
   (personnage ?vraiTueur controle ?tueur from-t ?temps) ; le sort a réussi
 
   (test (< ?temps ?tempsCrime))
-
-  (le-meurtrier est ?tueur)
   =>
   (assert (le-vrai-meurtrier est ?vraiTueur))
   (halt)
 )
 
 (defrule motif-ami-victime
-  (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
+  (personnage ?nom lance succes ?sortilege sur ?victime at-t ?temps)
   (personnage ?ami ami de ?victime)
+  (test (neq ?nom ?ami))
   =>
   (assert (personnage ?ami deteste ?nom))
 )
@@ -365,6 +378,7 @@
   (personnage ?possesseur possede ?objet)
   (personnage ?desireux desire ?objet)
   =>
+  (retract-string (str-cat "(personnage " ?desireux " ami de " ?possesseur ")"))
   (assert (personnage ?desireux deteste ?possesseur))
 )
 
@@ -374,8 +388,8 @@
   (test (neq ?nomA ?nomB))
   (test (neq ?statut ?autreStatut))
   =>
-  (assert (personnage ?nomA deteste ?nomB))
-  (assert (personnage ?nomB deteste ?nomA))
+  (assert (personnage ?nomA different de ?nomB))
+  (assert (personnage ?nomB different de ?nomA))
 )
 
 (defrule devenir-ami
@@ -386,12 +400,6 @@
   =>
   (assert (personnage ?nomA ami de ?nomB))
   (assert (personnage ?nomB ami de ?nomA))
-)
-
-(defrule commencer-jour
-  (personnage ?nom est ?statut)
-  =>
-  (assert (personnage ?nom possede baguette))
 )
 
 (defrule alibi-cours
