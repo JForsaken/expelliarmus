@@ -33,9 +33,9 @@
 
 ;; faits
 (deffacts informations
-  (blessure-crime expeliarmus)
-  (victime-crime Ron)
-  (heure-crime 15) ; enlever
+  (blessure-crime marque-de-la-mort) ; il portait cette blessure
+  (victime-crime Ron) ; ce personnage est mort
+  (heure-crime 14) ; pendant le 2e  cours de la journée
 
   (personnage Harry at-l yoga at-t 14)
   (personnage Harry voit Hermione at-t 14)
@@ -62,26 +62,26 @@
 )
 
 (deffacts objets
-  (object hedwige)
-  (object briquet)
-  (object cire-a-chaussure)
-  (object epee-de-gryffondor)
-  (object pierre-philosophale)
-  (object choixpeau)
-  (object coupe-de-feu)
-  (object horloge-de-la-famille-weasley)
-  (object bombe-puante)
-  (object sterilet)
-  (object nimbus-2000)
-  (object porte-poussiere)
-  (object cape-invisibilite) 
+  (objet hedwige)
+  (objet briquet)
+  (objet cire-a-chaussure)
+  (objet epee-de-gryffondor)
+  (objet pierre-philosophale)
+  (objet choixpeau)
+  (objet coupe-de-feu)
+  (objet horloge-de-la-famille-weasley)
+  (objet bombe-puante)
+  (objet sterilet)
+  (objet nimbus-2000)
+  (objet porte-poussiere)
+  (objet cape-invisibilite) 
 )
 
 (deffacts horcruxe
-  (object hedwige est un horcruxe)
-  (object sterilet est un horcruxe)
-  (object porte-poussiere est un horcruxe)
-  (object horloge-de-la-famille-weasley est un horcruxe)
+  (objet hedwige est un horcruxe)
+  (objet sterilet est un horcruxe)
+  (objet porte-poussiere est un horcruxe)
+  (objet horloge-de-la-famille-weasley est un horcruxe)
 )
 
 (deffacts agenda
@@ -109,10 +109,19 @@
   (personnage Fred-Weasley suit botanique)
   (personnage Fred-Weasley suit histoire-de-la-magie)
 
-
   (personnage Cho-Chang suit sortilege)
   (personnage Cho-Chang suit yoga)
   (personnage Cho-Chang suit defense-contre-le-mal)
+)
+
+(deffacts statut-personnage
+  (personnage Hermione est sang-de-bourbe)
+  (personnage Harry est sang-pur)
+  (personnage Ron est sang-pur)
+  (personnage Malfoy est sang-pur)
+  (personnage Marcus-Flint est moldu)
+  (personnage Fred-Weasley est sang-pur)
+  (personnage Cho-Chang est sang-de-bourbe)
 )
 
 ;(deffacts lieux
@@ -152,14 +161,14 @@
 ;)
 
 (deffacts sortileges
-  (sortilege expeliarmus)
-  (sortilege imperio)
-  (sortilege avada-kedavra)
-  (sortilege crucio)
-  (sortilege alohomora)
-  (sortilege accio)
-  (sortilege colloportus)
-  (sortilege wingardium-leviosa)
+  (sortilege expeliarmus entraine perte-baguette)
+  (sortilege imperio entraine perte-controle)
+  (sortilege avada-kedavra entraine mort)
+  (sortilege crucio entraine marque-de-la-mort)
+  (sortilege alohomora entraine ouverture-porte)
+  (sortilege accio entraine vol-objet)
+  (sortilege colloportus entraine fermeture-porte)
+  (sortilege wingardium-leviosa entraine vol-au-dessus-nid-de-coucou)
 )
 
 (deffacts apprentissages
@@ -192,19 +201,25 @@
 (defrule prend-baguette
   (personnage ?nom prend baguette)
   =>
-  (assert (personnage ?nom possede une ?baguette))
+  (assert (personnage ?nom possede baguette))
 )
 
 (defrule peut-lancer-sortilege
   (not (personnage ?nom est moldu))
-  (personnage ?nom possede ?baguette)
+  (personnage ?nom possede baguette)
   =>
   (assert (personnage ?nom peut lancer sortilege))
 )
 
+; complexe
 (defrule vu-par
-  (personnage ?voit at-l ?lieu at-t ?temps)
-  (personnage ?voit voit ?vu at-t ?temps)
+  (or
+    (and
+      (personnage ?voit at-l ?lieu at-t ?temps)
+      (personnage ?voit voit ?vu at-t ?temps)
+    ) 
+    (personnage professeur voit ?vu at-t ?temps)
+  )
   =>
   (assert (personnage ?vu at-l ?lieu at-t ?temps))
 )
@@ -235,19 +250,40 @@
 (defrule se-defend
   (personnage ?nom connait ?sortilege)
   (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
-  (personnage ?victime connait expeliarmus)
+  (not( sortilege-reussi ?nom ?sortilege ?victime ?temps))
   =>
-  (printout t ?victime " se défend contre un sort " ?sortilege crlf)
-  (assert (personnage ?nom perd baguette from-t ?temps))
+  (retract (personnage ?nom possede baguette))
 )
 
-(defrule est-mort
-  (personnage ?nom connait ?sortilege)
-  (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
-  (sortilege-reussi ?nom ?sortilege ?victime ?temps)
-  (test(neq ?victime "Harry")) (test(eq ?sortilege "avada-kedavra"))
+; complexe
+(defrule tuer
+  (personnage ?nom connait avada-kedavra)
+  (personnage ?nom lance avada-kedavra sur ?victime at-t ?temps)
+  (sortilege-reussi ?nom avada-kedavra ?victime ?temps)
+  (test(neq ?victime Harry)) 
+  (personnage ?nom possede ?objet)
+  (not (objet ?objet est un horcruxe))
   =>
   (assert (personnage ?nom est mort))
+)
+
+(defrule impact-sortilege
+  (personnage ?victime est atteint par ?sortilege at-t ?temps)
+  (sortilege ?sortilege entraine ?effet)
+  =>
+  (personnage ?victime subit ?effet)
+)
+
+(defrule voler
+  (personnage ?voleur desire ?objet)
+  (personnage ?victime possede ?objet)
+  (personnage ?voleur connait accio)
+  (personnage ?voleur lance accio sur ?victime at-t ?temps)
+  (sortilege-reussi ?voleur accio ?victime ?temps)
+  =>
+  (retract (personnage ?victime possede ?objet))
+  (assert (personnage ?voleur possede ?objet))
+  (assert (personnage ?victime deteste ?voleur))
 )
 
 (defrule prendre-controle
@@ -259,18 +295,13 @@
 
 ; complexe
 (defrule suspect
-  (blessure-crime ?sortilegeCrime)
+  (blessure-crime ?blessure)
+  (sortilege ?sortilege entraine ?blessure)
   (victime-crime ?victime)
-  (or 
-    (personnage ?nom deteste personnage ?victime)
-    (and
-      (personnage ?victime possede ?objet)
-      (personnage ?nom desire ?objet)
-    )
-  )
-  (personnage ?nom connait ?sortilegeCrime)
+  (personnage ?suspect deteste ?victime)
+  (personnage ?suspect connait ?sortilege)
   =>
-  (assert (suspect ?nom))
+  (assert (suspect ?suspect))
 )
 
 ;; complexe
@@ -317,40 +348,52 @@
   (halt)
 )
 
-(defrule devenir-ami
-
-)
-
-(defrule amitier-deteste 
-  (personnage ?nomA attaque personnage ?nomB at-t ?T1 et ?nomB est ami de personnage ?nomC from-t ?T2) 
-  ; a attaque b at-t T1, c est ami de b from-t T2
-  (test(< ?T1 ?T2))
-  ; verifier T2 plus petit que T
+(defrule motif-ami-victime
+  (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
+  (personnage ?ami ami de ?victime)
   =>
-  ; c deteste a
-  ; b deteste a
-  (assert (personnage ?nomA deteste personnage ?nomB))
-  (assert (personnage ?nomA deteste personnage ?nomC))
-  (assert (personnage ?nomB deteste personnage ?nomA))
-  (assert (personnage ?nomC deteste personnage ?nomA))
+  (assert (personnage ?ami deteste ?nom))
 )
 
-(defrule posseder
-  (personnage ?nomA possede ?objet && personnage ?nomB veut ?objet)
-  (assert (personnage ?nomB deteste personnage ?nomA)
-  (assert (personnage ?nomA deteste personnage ?nomB)
+(defrule motif-desirer
+  (personnage ?possesseur possede ?objet)
+  (personnage ?desireux desire ?objet)
+  =>
+  (assert (personnage ?desireux deteste ?possesseur))
 )
 
-  ; personnage a possede y, c veut y
-
-
-(defrule prendre
- (personnage ?nom prend objet ?objet)
- =>
- (printout t ?nom " possede " ?objet)
- (assert(personnage ?nom possede ?objet))
+; complexe
+(defrule motif-statut
+  (personnage ?nomA est ?statut)
+  (personnage ?nomB est ?autreStatut)
+  ; tout le monde aime hermione, car elle est sexy
+  ;(and
+  ;  (neq ?nomA Hermione)
+  ;  (neq ?nomB Hermione)
+  ;)
+  (test (neq ?nomA ?nomB))
+  (test (neq ?statut ?autreStatut))
+  =>
+  (assert (personnage ?nomA deteste ?nomB))
+  (assert (personnage ?nomB deteste ?nomA))
 )
 
+; complexe
+(defrule devenir-ami
+  (personnage ?nomA est ?statutA)
+  (personnage ?nomB est ?statutB)
+  ; tout le monde aime hermione, car elle est sexy
+ ; (or 
+ ;   (test (eq ?nomA Hermione))
+ ;   (test (eq ?nomB Hermione))
+ ; )
+
+  (test (eq ?statutA ?statutB))
+  (test (neq ?nomA ?nomB))
+  =>
+  (assert (personnage ?nomA ami de ?nomB))
+  (assert (personnage ?nomB ami de ?nomA))
+)
 
 (reset)
 (run)
