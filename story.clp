@@ -35,7 +35,8 @@
 (deffacts informations
   (blessure-crime marque-de-la-mort) ; il portait cette blessure
   (victime-crime Ron) ; ce personnage est mort
-  (heure-crime 14) ; pendant le 2e  cours de la journée
+  (lieu-crime toilette) ; dans les toilettes 
+  (heure-crime 16) ; pendant le 3e  cours de la journée
 
   (personnage Harry at-l yoga at-t 14)
   (personnage Harry voit Hermione at-t 14)
@@ -45,20 +46,49 @@
   (personnage Harry voit Ron lancer Accio)
 
   (personnage Hermione lance imperio sur Marcus-Flint at-t 12)
+  (personnage Cho-Chang lance imperio sur Fred-Weasley at-t 12)
 
   (personnage Marcus-Flint at-l potions at-t 13)
+
+  (personnage Ron possede epee-de-gryffondor) ; indice meurtre
+  (personnage Harry possede coupe-de-feu)
+  (personnage Hermione possede sterilet)
+  (personnage Cho-Chang possede porte-poussiere)
+  (personnage Fred-Weasley possede horloge-de-la-famille-weasley)
+  (personnage Marcus-Flint possede briquet)
+
+  (personnage Cho-Chang desire epee-de-gryffondor) ; indice meurtre
+
+  (professeur voit Cho-Chang at-t 10)
+  (professeur voit Cho-Chang at-t 14)
+  ; TODO ajouter plus de professeur voir X at-t T
+  (professeur voit Fred-Weasley at-t 10)
+  (professeur voit Fred-Weasley at-t 14)
+
+  (personnage Fred-Weasley besoin envie-uriner at-t 15)
 )
 
 (deffacts cours
   (cours vol from-t 9 to-t 12)
   (cours sortilege from-t 9 to-t 12)
-  (cours etude-des-moldus  from-t 9 to-t 12)
+  (cours histoire-de-la-magie from-t 9 to-t 12)
   (cours botanique from-t 12 to-t 15)
   (cours potions from-t 12 to-t 15)
   (cours yoga from-t 12 to-t 15)
   (cours astronomie from-t 15 to-t 18)
   (cours defense-contre-le-mal from-t 15 to-t 18)
-  (cours histoire-de-la-magie from-t 15 to-t 18)
+  (cours etude-des-moldus  from-t 15 to-t 18)
+)
+
+(deffacts lieux
+  (lieu toilette satisfait mal-ventre)
+  (lieu toilette satisfait envie-uriner)
+
+  (lieu dortoir satisfait envie-socialiser)
+  (lieu dortoir satisfait besoin-intimite)
+
+  (lieu cuisine satisfait faim)
+  (lieu cuisine satisfait envie-socialiser)
 )
 
 (deffacts objets
@@ -101,13 +131,13 @@
   (personnage Malfoy suit botanique)
   (personnage Malfoy suit defense-contre-le-mal)
 
-  (personnage Marcus-Flint suit etude-des-moldus)
-  (personnage Marcus-Flint suit potions)
   (personnage Marcus-Flint suit histoire-de-la-magie)
+  (personnage Marcus-Flint suit potions)
+  (personnage Marcus-Flint suit etude-des-moldus)
 
-  (personnage Fred-Weasley suit vol)
-  (personnage Fred-Weasley suit botanique)
   (personnage Fred-Weasley suit histoire-de-la-magie)
+  (personnage Fred-Weasley suit botanique)
+  (personnage Fred-Weasley suit astronomie)
 
   (personnage Cho-Chang suit sortilege)
   (personnage Cho-Chang suit yoga)
@@ -123,42 +153,6 @@
   (personnage Fred-Weasley est sang-pur)
   (personnage Cho-Chang est sang-de-bourbe)
 )
-
-;(deffacts lieux
-;  (lieu terrain-de-quidditch) ;; 1
-;  (lieu chambre-des-secrets)  ;; 2
-;  (lieu dortoire-gryffondor)  ;; 3
-;  (lieu dortoire-poufsouffle) ;; 4
-;  (lieu dortoire-serdaigle)   ;; 5
-;  (lieu toilettes-des-filles) ;; 6
-;  (lieu bibliotheque)         ;; 7
-;  (lieu dortoire-serpentard)  ;; 8
-;)
-
-;(deffacts portes
-;  ;; 6-1
-;  (porte de-l terrain-de-quidditch a-l toilettes-des-filles)
-;  (porte de-l toilettes-des-filles a-l terrain-de-quidditch)
-;
-;  ;; 6-2
-;  (porte de-l toilettes-des-filles a-l chambre-des-secrets)
-;  (porte de-l chambre-des-secrets a-l toilettes-des-filles)
-;
-;  ;; 2-7
-;  (porte de-l chambre-des-secrets a-l bibliotheque)
-;  (porte de-l bibliotheque a-l chambre-des-secrets)
-;
-;  ;; 7-3-4-5-8
-;  (porte de-l bibliotheque a-l dortoire-gryffondor)
-;  (porte de-l bibliotheque a-l dortoire-serdaigle)
-;  (porte de-l bibliotheque a-l dortoire-poufsouffle)
-;  (porte de-l bibliotheque a-l dortoire-serpentard)
-;
-;  (porte de-l dortoire-gryffondor bibliotheque)
-;  (porte de-l dortoire-serdaigle bibliotheque)
-;  (porte de-l dortoire-poufsouffle bibliotheque)
-;  (porte de-l dortoire-serpentard bibliotheque)
-;)
 
 (deffacts sortileges
   (sortilege expeliarmus entraine perte-baguette)
@@ -189,23 +183,18 @@
   (cours astronomie apprend avada-kedavra)
   (cours astronomie apprend expeliarmus)
 
+  (cours histoire-de-la-magie apprend alohomora)
   (cours histoire-de-la-magie apprend crucio)
-  (cours histoire-de-la-magie apprend imperio)
 
   (cours sortilege apprend accio)
   (cours sortilege apprend colloportus)
-  (cours sortilege apprend alohomora)
+  (cours sortilege apprend imperio)
 )
 
 ;; regles
-(defrule prend-baguette
-  (personnage ?nom prend baguette)
-  =>
-  (assert (personnage ?nom possede baguette))
-)
-
 (defrule peut-lancer-sortilege
-  (not (personnage ?nom est moldu))
+  (personnage ?nom est ?statut)
+  (test (neq ?statut moldu))
   (personnage ?nom possede baguette)
   =>
   (assert (personnage ?nom peut lancer sortilege))
@@ -213,24 +202,33 @@
 
 ; complexe
 (defrule vu-par
-  (or
-    (and
-      (personnage ?voit at-l ?lieu at-t ?temps)
-      (personnage ?voit voit ?vu at-t ?temps)
-    ) 
-    (personnage professeur voit ?vu at-t ?temps)
-  )
+  (personnage ?voit at-l ?lieu at-t ?temps)
+  (personnage ?voit voit ?vu at-t ?temps)
   =>
   (assert (personnage ?vu at-l ?lieu at-t ?temps))
 )
 
+(defrule vu-par-enseignant
+  (personnage ?vu suit ?cours)
+  (cours ?cours from-t ?de to-t ?a)
+  (professeur voit ?vu at-t ?temps)
+
+  (test (>= ?temps ?de))
+  (test (<= ?temps ?a))
+  =>
+  (assert (personnage ?vu at-l ?cours at-t ?temps))
+)
 ; complexe
 ; A partir du moment ou une personne lance un imperio fructueux, la personne qui
 ; est controllée est équivalente à la personne qui contrôle.
 (defrule lancer-sortilege-succes
+ ; (personnage ?nom connait ?sortilege)
+ ; (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
+ ; (sortilege-reussi ?nom ?sortilege ?victime ?temps)
+  (personnage ?nom peut lancer sortilege)
   (personnage ?nom connait ?sortilege)
   (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
-  (sortilege-reussi ?nom ?sortilege ?victime ?temps)
+  (not (personnage ?victime connait expeliarmus))
   =>
   (assert (personnage ?nom lance succes ?sortilege sur ?victime at-t ?temps))
   (assert (personnage ?victime est atteint par ?sortilege at-t ?temps))
@@ -247,10 +245,18 @@
   )
 )
 
-(defrule se-defend
+(defrule lancer-sortilege-echec
+  ;(personnage ?nom connait ?sortilege)
+  ;(personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
+  ;(not 
+;
+;    (sortilege-reussi ?nom ?sortilege ?victime ?temps)
+;  )
+
+  (personnage ?nom peut lancer sortilege)
   (personnage ?nom connait ?sortilege)
   (personnage ?nom lance ?sortilege sur ?victime at-t ?temps)
-  (not( sortilege-reussi ?nom ?sortilege ?victime ?temps))
+  (personnage ?victime connait expeliarmus)
   =>
   (retract (personnage ?nom possede baguette))
 )
@@ -271,7 +277,7 @@
   (personnage ?victime est atteint par ?sortilege at-t ?temps)
   (sortilege ?sortilege entraine ?effet)
   =>
-  (personnage ?victime subit ?effet)
+  (assert (personnage ?victime subit ?effet))
 )
 
 (defrule voler
@@ -298,8 +304,9 @@
   (blessure-crime ?blessure)
   (sortilege ?sortilege entraine ?blessure)
   (victime-crime ?victime)
-  (personnage ?suspect deteste ?victime)
+;  (personnage ?suspect deteste ?victime)
   (personnage ?suspect connait ?sortilege)
+  (not (personnage ?suspect alibi))
   =>
   (assert (suspect ?suspect))
 )
@@ -311,8 +318,8 @@
 
   (cours ?cours from-t ?de to-t ?a)
   
-  (test (> ?temps ?de))
-  (test (< ?temps ?a))
+  (test (>= ?temps ?de))
+  (test (<= ?temps ?a))
 
   (cours ?cours apprend ?sortilege)
   =>
@@ -326,10 +333,10 @@
   (heure-crime ?temps)
   (personnage ?nom at-l ?lieu at-t ?tempsCondition)
 
-  (test (> ?tempsCondition ?temps - 1))
-  (test (< ?tempsCondition ?temps + 1))
+  (test (>= ?tempsCondition (- ?temps 1)))
+  (test (<= ?tempsCondition (+ ?temps 1)))
   =>
-  (assert (le-tueur est ?nom))
+  (assert (le-meurtrier est ?nom))
 )
 
 ; complexe
@@ -341,10 +348,9 @@
 
   (test (< ?temps ?tempsCrime))
 
-  (le-tueur est ?tueur)
+  (le-meurtrier est ?tueur)
   =>
-  (retract (le-tueur est ?tueur))
-  (assert (le-tueur est ?vraiTueur))
+  (assert (le-vrai-meurtrier est ?vraiTueur))
   (halt)
 )
 
@@ -362,15 +368,9 @@
   (assert (personnage ?desireux deteste ?possesseur))
 )
 
-; complexe
 (defrule motif-statut
   (personnage ?nomA est ?statut)
   (personnage ?nomB est ?autreStatut)
-  ; tout le monde aime hermione, car elle est sexy
-  ;(and
-  ;  (neq ?nomA Hermione)
-  ;  (neq ?nomB Hermione)
-  ;)
   (test (neq ?nomA ?nomB))
   (test (neq ?statut ?autreStatut))
   =>
@@ -378,21 +378,37 @@
   (assert (personnage ?nomB deteste ?nomA))
 )
 
-; complexe
 (defrule devenir-ami
   (personnage ?nomA est ?statutA)
   (personnage ?nomB est ?statutB)
-  ; tout le monde aime hermione, car elle est sexy
- ; (or 
- ;   (test (eq ?nomA Hermione))
- ;   (test (eq ?nomB Hermione))
- ; )
-
   (test (eq ?statutA ?statutB))
   (test (neq ?nomA ?nomB))
   =>
   (assert (personnage ?nomA ami de ?nomB))
   (assert (personnage ?nomB ami de ?nomA))
+)
+
+(defrule commencer-jour
+  (personnage ?nom est ?statut)
+  =>
+  (assert (personnage ?nom possede baguette))
+)
+
+(defrule alibi-cours
+  (personnage ?nom at-l ?lieu at-t ?temps)
+  (cours ?lieu from-t ?de to-t ?a)
+  (heure-crime ?temps)
+  (test (>= ?temps ?de))
+  (test (<= ?temps ?a))
+  =>
+  (assert (personnage ?nom alibi))
+)
+
+(defrule satisfaire-besoin
+  (personnage ?nom besoin ?besoin at-t ?temps)
+  (lieu ?lieu satisfait ?besoin)
+  =>
+  (assert (personnage ?nom at-l ?lieu at-t ?temps))
 )
 
 (reset)
