@@ -47,6 +47,7 @@
   (personnage Ron lance accio sur Harry at-t 11) 
   (personnage Hermione lance imperio sur Marcus-Flint at-t 12)
   (personnage Cho-Chang lance imperio sur Fred-Weasley at-t 12)
+  (personnage Malfoy lance avada-kedavra sur Harry at-t 15)
 
   (personnage Harry possede epee-de-gryffondor) ; indice meurtre
   (personnage Harry possede coupe-de-feu)
@@ -56,6 +57,7 @@
   (personnage Marcus-Flint possede briquet)
 
   (personnage Ron desire epee-de-gryffondor)
+  (personnage Fred-Weasley desire epee-de-gryffondor)
   (personnage Cho-Chang desire epee-de-gryffondor) ; indice meurtre
 
   (professeur voit Harry at-t 10)
@@ -64,8 +66,12 @@
   ; TODO ajouter plus de professeur voir X at-t T
   (professeur voit Fred-Weasley at-t 10)
   (professeur voit Fred-Weasley at-t 14)
+  (professeur voit Malfoy at-t 15)
 
   (personnage Fred-Weasley besoin envie-uriner at-t 15)
+  (personnage Fred-Weasley voit epee-de-gryffondor at-l toilette)
+
+  (personnage Harry aime quidditch)
 )
 
 (deffacts cours
@@ -92,26 +98,19 @@
 )
 
 (deffacts objets
-  (objet hedwige)
+  (objet hedwige est un horcruxe)
   (objet briquet)
   (objet cire-a-chaussure)
   (objet epee-de-gryffondor)
   (objet pierre-philosophale)
   (objet choixpeau)
   (objet coupe-de-feu)
-  (objet horloge-de-la-famille-weasley)
-  (objet bombe-puante)
-  (objet sterilet)
-  (objet nimbus-2000)
-  (objet porte-poussiere)
-  (objet cape-invisibilite) 
-)
-
-(deffacts horcruxe
-  (objet hedwige est un horcruxe)
-  (objet sterilet est un horcruxe)
-  (objet porte-poussiere est un horcruxe)
   (objet horloge-de-la-famille-weasley est un horcruxe)
+  (objet bombe-puante)
+  (objet sterilet est un horcruxe)
+  (objet nimbus-2000)
+  (objet porte-poussiere est un horcruxe)
+  (objet cape-invisibilite) 
 )
 
 (deffacts agenda
@@ -207,7 +206,6 @@
   (assert (personnage ?nom peut lancer sortilege))
 )
 
-; complexe
 (defrule vu-par
   (personnage ?voit at-l ?lieu at-t ?temps)
   (personnage ?voit voit ?vu at-t ?temps)
@@ -225,6 +223,7 @@
   =>
   (assert (personnage ?vu at-l ?cours at-t ?temps))
 )
+
 ; complexe
 ; A partir du moment ou une personne lance un imperio fructueux, la personne qui
 ; est controllée est équivalente à la personne qui contrôle.
@@ -247,16 +246,22 @@
   (retract-string (str-cat "(personnage " ?nom " possede baguette)"))
 )
 
-; complexe
-(defrule tuer
-  (personnage ?nom connait avada-kedavra)
-  (personnage ?nom lance avada-kedavra sur ?victime at-t ?temps)
-  (sortilege-reussi ?nom avada-kedavra ?victime ?temps)
-  (test(neq ?victime Harry)) 
-  (personnage ?nom possede ?objet)
-  (not (objet ?objet est un horcruxe))
+(defrule immunite
+  (personnage ?tueur lance succes avada-kedavra sur ?victime at-t ?temps)
+  (test (eq ?victime Harry))
   =>
-  (assert (personnage ?nom est mort))
+  (retract-string (str-cat "(personnage Harry subit mort)"))
+  (assert (personnage Harry se protege contre la mort))
+)
+
+(defrule protection
+  (personnage ?tueur lance succes avada-kedavra sur ?victime at-t ?temps)
+  (personnage ?victime possede ?objet)
+  (objet ?objet est un horcruxe)
+  =>
+  (retract-string (str-cat "(personnage " ?victime " subit mort)"))
+  (retract-string (str-cat "(personnage " ?victime " possede " ?objet ")"))
+  (assert (personnage ?victime se protege contre la mort))
 )
 
 (defrule impact-sortilege
@@ -266,12 +271,18 @@
   (assert (personnage ?victime subit ?effet))
 )
 
+; réagir à la mort d'une personne ?
+;(defrule mourir
+;  
+;)
+
 (defrule voler
   (personnage ?voleur desire ?objet)
   (personnage ?victime possede ?objet)
   (personnage ?voleur lance succes accio sur ?victime at-t ?temps)
   =>
   (retract-string (str-cat "(personnage " ?victime " possede " ?objet ")"))
+  (retract-string (str-cat "(personnage " ?victime " ami de " ?voleur")")) 
   (assert (personnage ?voleur possede ?objet))
   (assert (personnage ?victime deteste ?voleur))
 )
@@ -283,6 +294,7 @@
   (assert (personnage ?nom controle ?victime from-t ?temps))
 )
 
+;; not used yet
 (defrule perdre
   (personnage ?nom possede ?objet)
   (personnage ?nom perd ?objet)
@@ -292,14 +304,16 @@
 )
 
 (defrule localiser
+  (objet ?objet est perdu)
   (personnage ?nom voit ?objet at-l ?lieu)
   =>
   (retract-string (str-cat "(objet " ?objet " est perdu)"))
   (assert (objet ?objet at-l ?lieu))
 )
+;;
 
 (defrule prendre
-  (personnage ?nom at-l ?lieu)
+  (personnage ?nom at-l ?lieu at-t ?temps)
   (objet ?objet at-l ?lieu)
   (personnage ?nom desire ?objet)
   =>
@@ -353,7 +367,10 @@
   (victime-crime ?victime)
   (heure-crime ?tempsCrime)
   (personnage ?vraiTueur different de ?victime)
-  (personnage ?victime possede ?objet)
+  (or
+    (personnage ?victime possede ?objet)
+    (personnage ?tueur possede ?objet)
+  )
   (personnage ?vraiTueur desire ?objet)
   (personnage ?vraiTueur deteste ?victime)
   (personnage ?vraiTueur connait imperio)
@@ -371,12 +388,14 @@
   (personnage ?ami ami de ?victime)
   (test (neq ?nom ?ami))
   =>
+  (retract-string (str-cat "(personnage " ?ami " ami de " ?nom ")"))
   (assert (personnage ?ami deteste ?nom))
 )
 
 (defrule motif-desirer
   (personnage ?possesseur possede ?objet)
   (personnage ?desireux desire ?objet)
+  (test (neq ?possesseur ?desireux))
   =>
   (retract-string (str-cat "(personnage " ?desireux " ami de " ?possesseur ")"))
   (assert (personnage ?desireux deteste ?possesseur))
@@ -417,6 +436,21 @@
   (lieu ?lieu satisfait ?besoin)
   =>
   (assert (personnage ?nom at-l ?lieu at-t ?temps))
+)
+
+(defrule fan-de-quidditck
+  (personnage ?nom aime quidditch)
+  =>
+  (assert (personnage ?nom connait wingardium-leviosa))
+)
+
+(defrule resultat-crime
+  (victime-crime ?victime) 
+  (lieu-crime ?lieu) 
+  (heure-crime ?temps) 
+  (personnage ?victime possede ?objet)
+  =>
+  (assert (personnage ?victime perd ?objet))
 )
 
 (reset)
