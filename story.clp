@@ -246,12 +246,22 @@
   (retract-string (str-cat "(personnage " ?nom " possede baguette)"))
 )
 
+(defrule personne-horcruxe
+  (personnage ?nom est sang-pur)
+  (or
+    (test (eq ?nom "Harry"))
+    (test (eq ?nom "Voldemort"))
+  )
+  =>
+  (assert (personnage ?nom est personne-horcruxe))
+)
+
 (defrule immunite
   (personnage ?tueur lance succes avada-kedavra sur ?victime at-t ?temps)
-  (test (eq ?victime Harry))
+  (personnage ?victime est personne-horcruxe)
   =>
-  (retract-string (str-cat "(personnage Harry subit mort)"))
-  (assert (personnage Harry se protege contre la mort))
+  (retract-string (str-cat "(personnage " ?victime " subit mort)"))
+  (assert (personnage ?victime se protege contre la mort))
 )
 
 (defrule protection
@@ -438,10 +448,23 @@
   (assert (personnage ?nom at-l ?lieu at-t ?temps))
 )
 
-(defrule fan-de-quidditck
+(defrule fan-de-quidditch
   (personnage ?nom aime quidditch)
   =>
   (assert (personnage ?nom connait wingardium-leviosa))
+)
+
+(defrule aucun-ami
+  (personnage ?nom)
+  (not (personnage ?nom ami de ?ami))
+  =>
+  (assert (personnage ?nom besoin envie-socialiser))
+)
+
+(defrule est-voyeur
+  (personnage ?nom aime espionner)
+  =>
+  (assert (personnage ?nom connait alohomora))
 )
 
 (defrule resultat-crime
