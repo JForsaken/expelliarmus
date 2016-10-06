@@ -213,6 +213,7 @@
   (assert (personnage ?vu at-l ?lieu at-t ?temps))
 )
 
+; complexe
 (defrule vu-par-enseignant
   (personnage ?vu suit ?cours)
   (cours ?cours from-t ?de to-t ?a)
@@ -264,6 +265,7 @@
   (assert (personnage ?victime se protege contre la mort))
 )
 
+; complexe
 (defrule protection
   (personnage ?tueur lance succes avada-kedavra sur ?victime at-t ?temps)
   (personnage ?victime possede ?objet)
@@ -281,11 +283,7 @@
   (assert (personnage ?victime subit ?effet))
 )
 
-; réagir à la mort d'une personne ?
-;(defrule mourir
-;  
-;)
-
+; complexe
 (defrule voler
   (personnage ?voleur desire ?objet)
   (personnage ?victime possede ?objet)
@@ -343,7 +341,7 @@
   (assert (suspect ?suspect))
 )
 
-;; complexe
+; complexe
 (defrule aprentissage
   (personnage ?nom suit ?cours)
   (personnage ?nom at-l ?cours at-t ?temps)
@@ -358,7 +356,7 @@
   (assert (personnage ?nom connait ?sortilege))
 )
 
-;complexe
+; complexe
 (defrule le-tueur
   (suspect ?nom)
   (lieu-crime ?lieu)
@@ -411,6 +409,7 @@
   (assert (personnage ?desireux deteste ?possesseur))
 )
 
+; complexe
 (defrule motif-statut
   (personnage ?nomA est ?statut)
   (personnage ?nomB est ?autreStatut)
@@ -431,6 +430,7 @@
   (assert (personnage ?nomB ami de ?nomA))
 )
 
+; complexe
 (defrule alibi-cours
   (personnage ?nom at-l ?lieu at-t ?temps)
   (cours ?lieu from-t ?de to-t ?a)
