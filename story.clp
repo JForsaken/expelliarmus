@@ -247,8 +247,11 @@
 )
 
 (defrule personne-horcruxe
-  (personnage ?nom)
-  (test (eq ?nom Harry))
+  (personnage ?nom est sang-pur)
+  (or
+    (test (eq ?nom "Harry"))
+    (test (eq ?nom "Voldemort"))
+  )
   =>
   (assert (personnage ?nom est personne-horcruxe))
 )
@@ -453,15 +456,15 @@
 
 (defrule aucun-ami
   (personnage ?nom)
-  (not(exists(personnage ?nom ami de ?)))
+  (not (personnage ?nom ami de ?ami))
   =>
   (assert (personnage ?nom besoin envie-socialiser))
 )
 
-(defrule naissance-personne-horcruxe
-  (not(objet ?objet est un horcruxe))
+(defrule est-voyeur
+  (personnage ?nom aime espionner)
   =>
-  (assert (personnage Ron est personne-horcruxe))
+  (assert (personnage ?nom connait alohomora))
 )
 
 (defrule resultat-crime
