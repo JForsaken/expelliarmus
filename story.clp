@@ -461,10 +461,11 @@
   (assert (personnage ?nom besoin envie-socialiser))
 )
 
-(defrule est-voyeur
+(defrule est-espion
   (personnage ?nom aime espionner)
   =>
   (assert (personnage ?nom connait alohomora))
+  (assert (personnage ?nom desire cape-invisibilite))
 )
 
 (defrule resultat-crime
@@ -474,6 +475,12 @@
   (personnage ?victime possede ?objet)
   =>
   (assert (personnage ?victime perd ?objet))
+)
+
+(defrule invisible
+  (personnage ?nom possede cape-invisibilite)
+  =>
+  (personnage ?nom est invisible)
 )
 
 (reset)
